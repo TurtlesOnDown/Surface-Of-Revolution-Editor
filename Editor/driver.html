@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        div.container {
+            width: 1400px;
+        }
+
+        header {
+            padding: 1em;
+            color: white;
+            background-color: black;
+            clear: left;
+            text-align: center;
+        }
+
+        can {
+            overflow: hidden;
+        }
+
+        attrib {
+            float: left;
+            width: 300px;
+        }
+
+        persp {
+            float: right;
+            max-width: 300px;
+            text-align: left;
+        }
+    </style>
+
+    <script id="lineShader-vs" type="x-shader/x-vertex">
+        attribute vec4 a_Position;
+
+        uniform mat4 u_ViewMatrix;
+        uniform mat4 u_ProjMatrix;
+        uniform mat4 u_ModelMatrix;
+
+        void main() {
+        gl_Position = u_ProjMatrix * u_ViewMatrix * a_Position;
+        gl_PointSize = 5.0;
+        }
+    </script>
+    <script id="lineShader-fs" type="x-shader/x-fragment">
+        precision mediump float;
+        uniform vec3 u_Color;
+
+        void main() {
+
+          gl_FragColor = vec4(u_Color, 1.0);
+        }
+    </script>
+
+    <script id="SORShader-vs" type="x-shader/x-vertex">
+        attribute vec3 a_Position;
+        attribute vec3 a_Normal;
+        attribute vec2 a_TexCoord;
+
+        uniform mat4 u_ViewMatrix;
+        uniform mat4 u_ProjMatrix;
+        uniform mat4 u_ModelMatrix;
+        uniform mat4 u_InverseTransposeModelMatrix;
+
+        varying vec3 v_Normal;
+        varying vec3 v_vertPos;
+        varying vec2 v_texCoord;
+
+        void main() {
+          gl_Position = u_ProjMatrix * u_ViewMatrix * u_ModelMatrix * vec4(a_Position, 1);
+
+          vec4 newNormal = u_InverseTransposeModelMatrix * vec4(a_Normal, 1);
+          v_Normal = newNormal.xyz;
+          v_vertPos = vec3(u_ModelMatrix * vec4(a_Position, 1.0));
+          v_texCoord = a_TexCoord;
+        }
+    </script>
+    <script id="SORShader-fs" type="x-shader/x-fragment">
+        precision mediump float;
+
+        struct Material {
+            sampler2D color;
+            float shininess;
+            bool specularOn;
+        };
+
+        struct DirLight {
+            vec3 direction;
+
+            vec3 ambientColor;
+            vec3 diffuseColor;
+            vec3 specularColor;
+
+            bool isOn;
+        };
+
+        struct PointLight {
+            vec3 position;
+
+            vec3 ambientColor;
+            vec3 diffuseColor;
+            vec3 specularColor;
+
+            bool isOn;
+        };
+
+        varying vec3 v_Normal;
+        varying vec3 v_vertPos;
+        varying vec2 v_texCoord;
+
+        uniform vec3 u_viewPosition;
+        uniform DirLight u_dirLight;
+        uniform PointLight u_pointLights[4];
+        uniform Material u_material;
+
+        uniform bool u_clicked;
+        uniform vec3 u_clickColor;
+
+        vec3 CalculateDirLight(DirLight light, vec3 normal, vec3 viewDir);
+        vec3 CalculatePointLight(PointLight light, vec3 normal, vec3 viewDir);
+
+        void main() {
+            if (u_clicked) gl_FragColor = vec4(u_clickColor, 1.0);
+            else {
+                vec3 norm = normalize(v_Normal);
+                vec3 viewDir = normalize(u_viewPosition - v_vertPos);
+
+                vec3 result = vec3(0.0, 0.0, 0.0);
+
+                if (u_dirLight.isOn) result = CalculateDirLight(u_dirLight, norm, viewDir);
+                gl_FragColor = vec4(result, 1.0);
+            }
+        }
+
+        vec3 CalculateDirLight(DirLight light, vec3 normal, vec3 viewDir) {
+            vec3 lightDir = normalize(-light.direction);
+            // Diffuse Calcs
+            float diff = max(dot(normal, lightDir), 0.0);
+            // Specular Calcs
+            vec3 reflectDir = reflect(-lightDir, normal);
+            float spec = 0.0;
+            if (u_material.specularOn) spec = pow(max(dot(viewDir, reflectDir), 0.0), u_material.shininess);
+            // Color Calcs
+            vec3 ambient = light.ambientColor * vec3(texture2D(u_material.color, v_texCoord));
+            vec3 diffuse = light.diffuseColor * diff * vec3(texture2D(u_material.color, v_texCoord));
+            vec3 specular = light.specularColor * spec * vec3(texture2D(u_material.color, v_texCoord));
+            return (ambient + diffuse + specular);
+        }
+    </script>
+
+</head>
+<body onload="main()">
+    <div class="container">
+
+    <header>
+        <h1>Surface of Rotation Editor</h1>
+    </header>
+
+    <attrib>
+        <p><input type="file" id="fileinput" /></p>
+        <p><button onclick="loadSOR()" type="button">Load SOR</button>
+        <button onclick="saveSOR()" type="button">Save SOR</button></p>
+        <p><button onclick="newSOR()" type="button">New SOR</button></p>
+        <p><input type="file" id="textinput" /></p>
+        <p><button onclick="loadTexture()" type="button">Load Texture</button></p>
+        <p>View Normals: <input type="checkbox" id="normalsOn"></p>
+        <p><button onclick="flatShading()" type="button">Flat Shading</button><button onclick="gourandShading()" type="button">Gourand Shading</button></p>
+        <p><button onclick="switchSpec()" type="button">Switch Specular</button></p>
+        <p>Shininess:</p>
+        <p><input type="text" name="Shininess" id="shiny" value="1"><button type="button" onclick="updateShiny()">Update</button></p>
+    </attrib>
+
+    <can>
+    <canvas id="webgl" width="800" height="800" style="border: 1px solid black;">
+        Please use a browser that supports "canvas"
+    </canvas>
+    </can>
+
+    <persp>
+        <p><button onclick="perspective()" type="button">Perspective</button><button onclick="orthographic()" type="button">Orthographic</button></p>
+
+    </persp>
+
+    </div>
+
+
+    <script src="../lib/webgl-utils.js"></script>
+    <script src="../lib/webgl-debug.js"></script>
+    <script src="../lib/cuon-utils.js"></script>
+    <script src="../lib/cuon-matrix.js"></script>
+    <script src="../lib/ioSOR.js"></script>
+    <script src="gcontrol.js"></script>
+    <script src="shaders.js"></script>
+    <script src="lights.js"></script>
+    <script src="surfaceofrevolution.js"></script>
+    <script src="line.js"></script>
+    <script src="mouse.js"></script>
+    <script src="util.js"></script>
+    <script src="loadstore.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

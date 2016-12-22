@@ -15,6 +15,7 @@ function DrawObject(obj, shader) {
 
 // Adds color ID to a DrawObject
 DrawObject.prototype.giveCID = function(cid) {
+    console.log(this.GUID);
     this.CID = cid;
 };
 
@@ -108,7 +109,7 @@ Gcontroller.prototype.transViewPosZ = function(z) {
 
 // Adds a drawObject to the list to be drawn.
 Gcontroller.prototype.pushDrawObject = function(dObj) {
-    dObj.giveCID(this.nextCID);
+    dObj.giveCID(new Vector3(this.nextCID.elements));
     for (var i = 0; i < this.nextCID.elements.length; i++) {
         if (this.nextCID.elements[i] < 255) {
             this.nextCID.elements[i]++;
@@ -161,7 +162,8 @@ Gcontroller.prototype.findClicked = function(x, y) {
     var pixels = new Uint8Array(4);
     this.gl.readPixels(x, y, 1, 1, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixels);
     var selectedColor = new Vector3([pixels[0], pixels[1], pixels[2]]);
-
+    console.log(pixels);
+    console.log(this.drawObjects);
     this.draw();
 
     for (var i = 0; i < this.drawObjects.length; i++) {
@@ -175,7 +177,15 @@ Gcontroller.prototype.findClicked = function(x, y) {
 };
 
 Gcontroller.prototype.select = function(id) {
-    if (!this.selectedObject || this.selectedObject.GUID != id) {
+    if (!this.selectedObject) {
+        var i;
+        for (i = 0; i < this.drawObjects.length; i++)
+            if (this.drawObjects[i].GUID == id) this.selectedObject = this.drawObjects[i];
+        if (this.selectedObject != null) this.selectedColor = this.selectedObject.element.color;
+        this.selectedObject.element.changeColor(new Vector3([.5, .5, .5]));
+    }
+    else if (this.selectedObject.GUID != id) {
+        this.selectedObject.element.changeColor(this.selectedColor);
         var i;
         for (i = 0; i < this.drawObjects.length; i++)
             if (this.drawObjects[i].GUID == id) this.selectedObject = this.drawObjects[i];

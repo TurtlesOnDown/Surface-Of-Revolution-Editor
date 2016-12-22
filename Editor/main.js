@@ -21,6 +21,8 @@ function main() {
     var canvas = document.getElementById('webgl');
     GRAPHICSENGINE = new Gcontroller(canvas);
     GRAPHICSENGINE.setOrthographic(-400, 400, -400, 400, -400, 400);
+    GRAPHICSENGINE.setLookAt(0, 0, 1, 0, 0, 0, 0, 1, 0);
+    GRAPHICSENGINE.setViewPos(0, 0, 800);
 
     var lineShader = new Shader("lineShader", GRAPHICSENGINE,
         getShaderCode("lineShader-vs"), getShaderCode("lineShader-fs"));
@@ -37,8 +39,8 @@ function main() {
 
 
     DIVIDERLINE = new Line(GRAPHICSENGINE);
-    DIVIDERLINE.pushPoint(new Vector3([0, 400, 0]));
-    DIVIDERLINE.pushPoint(new Vector3([0, -400, 0]));
+    DIVIDERLINE.pushPoint(new Vector3([0, 2000, 0]));
+    DIVIDERLINE.pushPoint(new Vector3([0, -2000, 0]));
     DIVIDERLINE = new DrawObject(DIVIDERLINE, "lineShader");
     GRAPHICSENGINE.pushDrawObject(DIVIDERLINE);
 
@@ -75,8 +77,8 @@ function onClickCreateLine(event) {
     var x = event.pageX - rect.left;
     var y = event.pageY - rect.top;
 
-    var pointX = (x - GRAPHICSENGINE.canvas.width/2)/(GRAPHICSENGINE.canvas.width/2) * 400;
-    var pointY = (GRAPHICSENGINE.canvas.height/2 - y)/(GRAPHICSENGINE.canvas.height/2) * 400;
+    var pointX = x - GRAPHICSENGINE.canvas.width/2;
+    var pointY = GRAPHICSENGINE.canvas.height/2 - y;
 
     if (event.button === 0) {
         LINE.pushPoint(new Vector3([pointX, pointY, 0]));
@@ -100,7 +102,7 @@ function onClickCreateLine(event) {
 
         GRAPHICSENGINE.removeDrawObject(dLINE.GUID);
         GRAPHICSENGINE.pushDrawObject(new DrawObject(SOR, "SORShader"));
-        orthographic();
+        perspective();
 
 
         MOUSE.mouseDownAction = onMouseDownSOR;
@@ -117,8 +119,8 @@ function mouseMoveCreateLine(event) {
     var x = event.pageX - rect.left;
     var y = event.pageY - rect.top;
 
-    var pointX = (x - GRAPHICSENGINE.canvas.width/2)/(GRAPHICSENGINE.canvas.width/2) * 400;
-    var pointY = (GRAPHICSENGINE.canvas.height/2 - y)/(GRAPHICSENGINE.canvas.height/2) * 400;
+    var pointX = x - GRAPHICSENGINE.canvas.width/2;
+    var pointY = GRAPHICSENGINE.canvas.height/2 - y;
 
     // Rubberbanding code, adds a point if starting the rubberband
     if (MOUSE.banding == true && LINE.first == true) {
@@ -155,21 +157,21 @@ function onMoveSOR(event) {
     var x = event.pageX - rect.left;
     var y = event.pageY - rect.top;
 
-    var pointX = (x - GRAPHICSENGINE.canvas.width/2)/(GRAPHICSENGINE.canvas.width/2) * 400;
-    var pointY = (GRAPHICSENGINE.canvas.height/2 - y)/(GRAPHICSENGINE.canvas.height/2) * 400;
+    var pointX = x - GRAPHICSENGINE.canvas.width/2;
+    var pointY = GRAPHICSENGINE.canvas.height/2 - y;
 
     if (ACTIONS.translationXY) {
         var translateX = pointX - ACTIONS.glPoint[0];
         var translateY = pointY - ACTIONS.glPoint[1];
 
-        GRAPHICSENGINE.translateSelX(translateX * 1.05);
-        GRAPHICSENGINE.translateSelY(translateY * 1.05);
+        GRAPHICSENGINE.translateSelX(translateX);
+        GRAPHICSENGINE.translateSelY(translateY);
 
     }
     if (ACTIONS.translationZ) {
-        var translateZ = pointY - ACTIONS.glPoint[0];
+        var translateZ = pointY - ACTIONS.glPoint[1];
 
-        GRAPHICSENGINE.translateSelZ(translateZ * .1);
+        GRAPHICSENGINE.translateSelZ(translateZ * 1.5);
     }
 
     if (ACTIONS.rotation) {
@@ -181,15 +183,14 @@ function onMoveSOR(event) {
     }
 
     if (ACTIONS.panningXY) {
-        console.log("Test");
-        var xdirect = y - ACTIONS.point[0];
+        var xdirect = x - ACTIONS.point[0];
         var ydirect = y - ACTIONS.point[1];
 
-        GRAPHICSENGINE.transViewPosX(xdirect);
-        GRAPHICSENGINE.transViewPosX(ydirect);
+        GRAPHICSENGINE.transViewPosX(xdirect * 40);
+        GRAPHICSENGINE.transViewPosY(ydirect * 40);
     }
 
-    ACTIONS.point = [x, y]
+    ACTIONS.point = [x, y];
     ACTIONS.glPoint = [pointX, pointY];
 }
 
@@ -243,4 +244,26 @@ function perspective() {
     GRAPHICSENGINE.setPerspective(80, 1, 1600);
     GRAPHICSENGINE.setLookAt(0, 0, 1000, 0, 0, 0, 0, 1, 0);
     GRAPHICSENGINE.setViewPos(0, 0, 800);
+}
+
+function newObject() {
+    GRAPHICSENGINE.setOrthographic(-400, 400, -400, 400, -400, 400);
+    GRAPHICSENGINE.setLookAt(0, 0, 1, 0, 0, 0, 0, 1, 0);
+    GRAPHICSENGINE.setViewPos(0, 0, 800);
+
+    LINE = new Line(GRAPHICSENGINE, new Vector3([1, 0, 0]));
+    LINE.first = true;
+    GRAPHICSENGINE.pushDrawObject(DIVIDERLINE);
+
+    MOUSE.mouseDownAction = onClickCreateLine;
+    MOUSE.mouseMoveAction = mouseMoveCreateLine;
+    MOUSE.mouseScrollAction = function(event) {};
+    MOUSE.mouseUpAction = function(event) {};
+
+}
+
+function removeObject() {
+    if (GRAPHICSENGINE.getSelected()) {
+        GRAPHICSENGINE.removeDrawObject(GRAPHICSENGINE.getSelected().GUID);
+    }
 }

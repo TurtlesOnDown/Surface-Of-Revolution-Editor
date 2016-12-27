@@ -16,6 +16,8 @@ var GRAPHICSENGINE = null;
 var MOUSE = new Mouse();
 var ACTIONS = new ActionControl();
 
+var TEXTURE = null;
+
 function main() {
     // Start up graphics engine and webgl to the canvas
     var canvas = document.getElementById('webgl');
@@ -109,6 +111,8 @@ function onClickCreateLine(event) {
         MOUSE.mouseMoveAction = onMoveSOR;
         MOUSE.mouseScrollAction = onScrollSOR;
         MOUSE.mouseUpAction = onMouseUpSOR;
+
+        document.getElementById("texInput").addEventListener('change', newTexture);
     }
 
     GRAPHICSENGINE.draw();
@@ -265,5 +269,15 @@ function newObject() {
 function removeObject() {
     if (GRAPHICSENGINE.getSelected()) {
         GRAPHICSENGINE.removeDrawObject(GRAPHICSENGINE.getSelected().GUID);
+    }
+}
+
+function newTexture(event) {
+    TEXTURE = event.target.files[0].name;
+}
+
+function loadTexture() {
+    if (GRAPHICSENGINE.getSelected()) {
+        GRAPHICSENGINE.getSelected().changeTexture(TEXTURE, GRAPHICSENGINE);
     }
 }

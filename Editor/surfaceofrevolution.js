@@ -113,6 +113,7 @@ function SurfaceOfRevolution(control, vertices, indices, color, UV) {
 
 SurfaceOfRevolution.prototype.changeColor = function(color) {
     this.color = color;
+    this.texture = this.control.gl.createTexture();
     this.control.gl.bindTexture(this.control.gl.TEXTURE_2D, this.texture);
     this.control.gl.texImage2D(this.control.gl.TEXTURE_2D, 0, this.control.gl.RGBA, 1, 1, 0, this.control.gl.RGBA, this.control.gl.UNSIGNED_BYTE,
         new Uint8Array([this.color.elements[0] * 255, this.color.elements[1] * 255, this.color.elements[2] * 255, 255]));
@@ -140,6 +141,10 @@ SurfaceOfRevolution.prototype.gourandShading = function() {
     updateArrayBuffer(this.smoothNormals, this.nbuffer, this.control);
     updateArrayBuffer(this.smoothUVs, this.uvbuffer, this.control);
     updateElementArrayBuffer(this.currentIndices, this.elembuffer, this.control);
+};
+
+SurfaceOfRevolution.prototype.changeTexture = function(tex) {
+    this.texture = tex;
 };
 
 SurfaceOfRevolution.prototype.transX = function(val) {

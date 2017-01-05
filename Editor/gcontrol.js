@@ -11,11 +11,12 @@ function DrawObject(obj, shader) {
 
     this.shader = shader;
     this.element = obj;
+    this.color = obj.color;
+    this.texture = null;
 }
 
 // Adds color ID to a DrawObject
 DrawObject.prototype.giveCID = function(cid) {
-    console.log(this.GUID);
     this.CID = cid;
 };
 
@@ -32,6 +33,37 @@ DrawObject.prototype.drawClicked = function(control) {
     this.element.drawClicked(control, clickColor);
 };
 
+DrawObject.prototype.select = function() {
+    if (this.element.changeColor != undefined) {
+        this.element.changeColor(new Vector3([.5, .5, .5]));
+    }
+};
+
+DrawObject.prototype.deselect = function() {
+    this.element.changeColor(this.color);
+    if (this.texture) {
+        this.element.changeTexture(this.texture);
+    }
+};
+
+DrawObject.prototype.changeTexture = function(tex, control) {
+  if (this.element.changeTexture != undefined) {
+      var image = new Image();
+      var _Texture = control.gl.createTexture();
+      var _ThisGL = control.gl;
+      image.src = tex;
+      image.addEventListener('load', function() {
+          _ThisGL.pixelStorei(_ThisGL.UNPACK_FLIP_Y_WEBGL, 1);
+          _ThisGL.bindTexture(_ThisGL.TEXTURE_2D, _Texture);
+          _ThisGL.texImage2D(_ThisGL.TEXTURE_2D, 0, _ThisGL.RGBA, _ThisGL.RGBA, _ThisGL.UNSIGNED_BYTE, image);
+          _ThisGL.generateMipmap(_ThisGL.TEXTURE_2D);
+      });
+
+      this.texture = _Texture;
+      this.element.changeTexture(_Texture);
+  }
+};
+
 // Constructor
 // Creates the webgl context and controls all objects that will be drawn on the screen
 function Gcontroller(canvas) {
@@ -45,7 +77,6 @@ function Gcontroller(canvas) {
 
     // selected object to be transformed
     this.selectedObject = null;
-    this.selectedColor = null;
 
     // MVP matrixes
     this.projectionMatrix = new Matrix4();
@@ -144,6 +175,17 @@ Gcontroller.prototype.setDirLight = function(dLight) {
     this.directionalLight = dLight;
 };
 
+Gcontroller.prototype.addPointLight = function(pLight) {
+    pLight.giveCID(this.nextCID);
+    for (var i = 0; i < this.nextCID.elements.length; i++) {
+        if (this.nextCID.elements[i] < 255) {
+            this.nextCID.elements[i]++;
+            break;
+        }
+    }
+    this.pointLights.push(pLight);
+};
+
 Gcontroller.prototype.addShader = function(shader) {
     if (this[shader.name] != undefined) return null;
 
@@ -154,6 +196,7 @@ Gcontroller.prototype.removeShader = function(name) {
     this[name] = undefined;
 };
 
+// Returns the GUID of an object that was at the points X, Y
 Gcontroller.prototype.findClicked = function(x, y) {
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     for (var i = 0; i < this.drawObjects.length; i++) this.drawObjects[i].drawClicked(this);
@@ -162,8 +205,6 @@ Gcontroller.prototype.findClicked = function(x, y) {
     var pixels = new Uint8Array(4);
     this.gl.readPixels(x, y, 1, 1, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixels);
     var selectedColor = new Vector3([pixels[0], pixels[1], pixels[2]]);
-    console.log(pixels);
-    console.log(this.drawObjects);
     this.draw();
 
     for (var i = 0; i < this.drawObjects.length; i++) {
@@ -176,28 +217,22 @@ Gcontroller.prototype.findClicked = function(x, y) {
     return null;
 };
 
+// Selects and object based on it's GUID
 Gcontroller.prototype.select = function(id) {
-    if (!this.selectedObject) {
+    // If there is not object selected, find one and change the color
+    if (this.selectedObject && this.selectedObject.GUID != id) this.selectedObject.deselect();
+    if (!this.selectedObject || this.selectedObject.GUID != id) {
+        // Find the correct element
         var i;
         for (i = 0; i < this.drawObjects.length; i++)
             if (this.drawObjects[i].GUID == id) this.selectedObject = this.drawObjects[i];
-        if (this.selectedObject != null) this.selectedColor = this.selectedObject.element.color;
-        this.selectedObject.element.changeColor(new Vector3([.5, .5, .5]));
-    }
-    else if (this.selectedObject.GUID != id) {
-        this.selectedObject.element.changeColor(this.selectedColor);
-        var i;
-        for (i = 0; i < this.drawObjects.length; i++)
-            if (this.drawObjects[i].GUID == id) this.selectedObject = this.drawObjects[i];
-        if (this.selectedObject != null) this.selectedColor = this.selectedObject.element.color;
-        this.selectedObject.element.changeColor(new Vector3([.5, .5, .5]));
+        this.selectedObject.select();
     }
 };
 
 Gcontroller.prototype.deselect = function() {
-    if (this.selectedObject) this.selectedObject.element.changeColor(this.selectedColor);
+    if (this.selectedObject) this.selectedObject.deselect();
     this.selectedObject = null;
-    this.selectedColor = null;
 };
 
 Gcontroller.prototype.getSelected = function() {

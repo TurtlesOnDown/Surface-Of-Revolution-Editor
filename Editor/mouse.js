@@ -14,24 +14,24 @@ function Mouse() {
 Mouse.prototype.beginCapture = function (canvas) {
     var _this = this;
     if (this.mouseMoveAction) {
-        _this.x = event.pageX - canvas.offsetLeft;
-        _this.y = event.pageY - canvas.offsetTop;
-        canvas.addEventListener('mousemove', function (event) {
+        canvas.addEventListener('mousemove', function(event) {
+            _this.x = event.pageX - canvas.offsetLeft;
+            _this.y = event.pageY - canvas.offsetTop;
             return _this.mouseMoveAction(event);
         });
     }
     if (this.mouseDownAction) {
-        canvas.addEventListener('mousedown', function (event) {
+        canvas.addEventListener('mousedown', function(event) {
             return _this.mouseDownAction(event);
         });
     }
     if (this.mouseUpAction) {
-        canvas.addEventListener('mouseup', function (event) {
+        canvas.addEventListener('mouseup', function(event) {
             return _this.mouseUpAction(event);
         });
     }
     if (this.mouseScrollAction) {
-        canvas.addEventListener('wheel', function (event) {
+        canvas.addEventListener('wheel', function(event) {
             return _this.mouseScrollAction(event);
         });
     }

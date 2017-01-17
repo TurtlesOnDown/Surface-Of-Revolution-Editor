@@ -24,21 +24,24 @@ function Line(control, color) {
     }
 }
 
+// Adds a Vertex3 point to the line
 Line.prototype.pushPoint = function(vert) {
     this.vertices.push(vert);
 
     if (this.control != undefined)updateArrayBuffer(vertex3ToFloat32(this.vertices), this.vbuffer, this.control);
 };
 
+// Removes the last point added to the line.
 Line.prototype.popPoint = function() {
     this.vertices.pop();
 
     if (this.control != undefined) updateArrayBuffer(vertex3ToFloat32(this.vertices), this.vbuffer, this.control);
 };
 
+// Draws the line.
 Line.prototype.draw = function(control) {
     //Pass in viewpoint
-    this.control.gl.uniformMatrix4fv(this.u_viewMat, false, control.viewMatrix.elements);
+    this.control.gl.uniformMatrix4fv(this.u_viewMat, false, control.getViewMatrix().elements);
     this.control.gl.uniformMatrix4fv(this.u_projMat, false, control.projectionMatrix.elements);
 
 

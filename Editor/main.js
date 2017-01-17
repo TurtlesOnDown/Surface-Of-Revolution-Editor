@@ -16,6 +16,8 @@ var GRAPHICSENGINE = null;
 var MOUSE = new Mouse();
 var ACTIONS = new ActionControl();
 
+var KEYBOARD = false;
+
 var TEXTURE = null;
 
 function main() {
@@ -23,8 +25,6 @@ function main() {
     var canvas = document.getElementById('webgl');
     GRAPHICSENGINE = new Gcontroller(canvas);
     GRAPHICSENGINE.setOrthographic(-400, 400, -400, 400, -400, 400);
-    GRAPHICSENGINE.setLookAt(0, 0, 1, 0, 0, 0, 0, 1, 0);
-    GRAPHICSENGINE.setViewPos(0, 0, 800);
 
     var lineShader = new Shader("lineShader", GRAPHICSENGINE,
         getShaderCode("lineShader-vs"), getShaderCode("lineShader-fs"));
@@ -51,6 +51,7 @@ function main() {
     MOUSE.mouseScrollAction = function(event) {};
     MOUSE.mouseUpAction = function(event) {};
     MOUSE.beginCapture(GRAPHICSENGINE.canvas);
+    document.addEventListener("keydown", moveCam);
 
     GRAPHICSENGINE.canvas.addEventListener('contextmenu', function (event) {
         if (event.button == 2) {
@@ -111,6 +112,7 @@ function onClickCreateLine(event) {
         MOUSE.mouseMoveAction = onMoveSOR;
         MOUSE.mouseScrollAction = onScrollSOR;
         MOUSE.mouseUpAction = onMouseUpSOR;
+        KEYBOARD = true;
 
         document.getElementById("texInput").addEventListener('change', newTexture);
     }
@@ -190,8 +192,8 @@ function onMoveSOR(event) {
         var xdirect = x - ACTIONS.point[0];
         var ydirect = y - ACTIONS.point[1];
 
-        GRAPHICSENGINE.transViewPosX(xdirect * 40);
-        GRAPHICSENGINE.transViewPosY(ydirect * 40);
+        GRAPHICSENGINE.rotateCamAboutY((xdirect * (Math.PI / 180)) * .5);
+        GRAPHICSENGINE.rotateCamAboutX((ydirect * (Math.PI / 180)) * .5);
     }
 
     ACTIONS.point = [x, y];
@@ -240,20 +242,17 @@ function gourandShading() {
 
 function orthographic() {
     GRAPHICSENGINE.setOrthographic(-400, 400, -400, 400, -400, 400);
-    GRAPHICSENGINE.setLookAt(1, 1, 0, 0, 0, 0, 0, 1, 0);
-    GRAPHICSENGINE.setViewPos(0, 0, 800);
+    GRAPHICSENGINE.setViewPos(1, 1, 0);
 }
 
 function perspective() {
     GRAPHICSENGINE.setPerspective(80, 1, 1600);
-    GRAPHICSENGINE.setLookAt(0, 0, 1000, 0, 0, 0, 0, 1, 0);
     GRAPHICSENGINE.setViewPos(0, 0, 800);
 }
 
 function newObject() {
-    GRAPHICSENGINE.setOrthographic(-400, 400, -400, 400, -400, 400);
-    GRAPHICSENGINE.setLookAt(0, 0, 1, 0, 0, 0, 0, 1, 0);
-    GRAPHICSENGINE.setViewPos(0, 0, 800);
+    GRAPHICSENGINE.setPerspective(80, 1, 1600);
+    GRAPHICSENGINE.setViewPos(0, 0, 475);
 
     LINE = new Line(GRAPHICSENGINE, new Vector3([1, 0, 0]));
     LINE.first = true;
@@ -279,5 +278,18 @@ function newTexture(event) {
 function loadTexture() {
     if (GRAPHICSENGINE.getSelected()) {
         GRAPHICSENGINE.getSelected().changeTexture(TEXTURE, GRAPHICSENGINE);
+    }
+}
+
+function changeCam() {
+    GRAPHICSENGINE.changeCamType();
+}
+
+function moveCam(event) {
+    if (KEYBOARD) {
+        if (event.keyCode == 87) GRAPHICSENGINE.moveCamera(0, 0, -1);
+        if (event.keyCode == 65) GRAPHICSENGINE.moveCamera(-1, 0, 0);
+        if (event.keyCode == 68) GRAPHICSENGINE.moveCamera(1, 0, 0);
+        if (event.keyCode == 83) GRAPHICSENGINE.moveCamera(0, 0, 1);
     }
 }

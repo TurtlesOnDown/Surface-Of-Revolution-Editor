@@ -8,6 +8,7 @@ function updateArrayBuffer(data, buffer, control) {
     control.gl.bindBuffer(control.gl.ARRAY_BUFFER, null);
 }
 
+// updates the element array buffer
 function updateElementArrayBuffer(data, buffer, control) {
     control.gl.bindBuffer(control.gl.ELEMENT_ARRAY_BUFFER, buffer);
     control.gl.bufferData(control.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data), control.gl.STATIC_DRAW);
@@ -25,6 +26,7 @@ function vertex3ToFloat32(array) {
     return new Float32Array(result);
 }
 
+// converts an array of size 2 arrays into a Float32 array
 function UVtoFloat32(array) {
     var result = [];
     for (var i = 0; i < array.length; i++) {
@@ -139,6 +141,7 @@ function generateVertices(line) {
     return vertices;
 }
 
+// Creates an Nx2 array of UV coordinates for use by a surface of revolution object
 function generateUVs(line) {
     var delta = Math.PI / 18;
     var UVS = [];

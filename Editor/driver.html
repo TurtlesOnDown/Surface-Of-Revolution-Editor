@@ -40,6 +40,7 @@
         uniform mat4 u_ModelMatrix;
 
         void main() {
+        // multiplies projection matrix, view matrix, and position vector (Need to include model matrix)
         gl_Position = u_ProjMatrix * u_ViewMatrix * a_Position;
         gl_PointSize = 5.0;
         }
@@ -71,6 +72,7 @@
         void main() {
           gl_Position = u_ProjMatrix * u_ViewMatrix * u_ModelMatrix * vec4(a_Position, 1);
 
+          // passing in the new vertex points to the fragment shaders through varying variables
           vec4 newNormal = u_InverseTransposeModelMatrix * vec4(a_Normal, 1);
           v_Normal = newNormal.xyz;
           v_vertPos = vec3(u_ModelMatrix * vec4(a_Position, 1.0));
@@ -117,8 +119,12 @@
 
         uniform bool u_clicked;
         uniform vec3 u_clickColor;
-
+        // Takes in a direct light object, a normal, and a view direction
+        // Returns the color of the pixel based on direct light
         vec3 CalculateDirLight(DirLight light, vec3 normal, vec3 viewDir);
+
+        // Takes in a point light object, a normal and a view direction
+        // Returns the color of the pixel based on point light
         vec3 CalculatePointLight(PointLight light, vec3 normal, vec3 viewDir);
 
         void main() {
@@ -176,6 +182,7 @@
 
     <persp>
         <p><button onclick="perspective()" type="button">Perspective</button><button onclick="orthographic()" type="button">Orthographic</button></p>
+        <p><button onclick="changeCam()" type="button">Switch First/Third Camera</button></p>
 
     </persp>
 
@@ -187,6 +194,8 @@
     <script src="../lib/cuon-utils.js"></script>
     <script src="../lib/cuon-matrix.js"></script>
     <script src="../lib/ioSOR.js"></script>
+    <script src="thirdpersoncamera.js"></script>
+    <script src="firstpersoncamera.js"></script>
     <script src="gcontrol.js"></script>
     <script src="shaders.js"></script>
     <script src="lights.js"></script>

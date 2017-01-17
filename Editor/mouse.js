@@ -1,6 +1,7 @@
 // By Spenser Riebs
 // Mouse control unit for a surfaceofrevolution file
 
+// A mouse object meant to act as a global control of the mouse functions
 function Mouse() {
     this.x = 0;
     this.y = 0;
@@ -11,6 +12,7 @@ function Mouse() {
     this.isMouseDown = false;
 }
 
+// Turns all functions to eventlisteners when called. Initializing the mouse functionality
 Mouse.prototype.beginCapture = function (canvas) {
     var _this = this;
     if (this.mouseMoveAction) {

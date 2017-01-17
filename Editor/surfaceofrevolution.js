@@ -173,7 +173,7 @@ SurfaceOfRevolution.prototype.rotZ = function(val) {
 
 SurfaceOfRevolution.prototype.changeScale = function(val) {
     this.scale *= val;
-}
+};
 
 SurfaceOfRevolution.prototype.draw = function(control) {
     this.modelMatrix = new Matrix4();
@@ -202,12 +202,12 @@ SurfaceOfRevolution.prototype.draw = function(control) {
     control.gl.vertexAttribPointer(this.a_TexCoord, 2, control.gl.FLOAT, false, 0, 0);
     control.gl.enableVertexAttribArray(this.a_TexCoord);
 
-    control.gl.uniformMatrix4fv(this.u_ViewMatrix, false, control.viewMatrix.elements);
+    control.gl.uniformMatrix4fv(this.u_ViewMatrix, false, control.getViewMatrix().elements);
     control.gl.uniformMatrix4fv(this.u_ProjMatrix, false, control.projectionMatrix.elements);
     control.gl.uniformMatrix4fv(this.u_ModelMatrix, false, this.modelMatrix.elements);
     control.gl.uniformMatrix4fv(this.u_InverseTransposeModelMatrix, false, this.inverseTransposeModelMatrix.elements);
 
-    control.gl.uniform3fv(this.u_viewPosition, control.viewPosition.elements);
+    control.gl.uniform3fv(this.u_viewPosition, control.getViewPos().elements);
 
     control.gl.bindTexture(control.gl.TEXTURE_2D, this.texture);
     control.gl.uniform1i(this.u_material.color, 0);
@@ -248,7 +248,7 @@ SurfaceOfRevolution.prototype.drawClicked = function(control, CID) {
     control.gl.vertexAttribPointer(this.a_TexCoord, 2, control.gl.FLOAT, false, 0, 0);
     control.gl.enableVertexAttribArray(this.a_TexCoord);
 
-    control.gl.uniformMatrix4fv(this.u_ViewMatrix, false, control.viewMatrix.elements);
+    control.gl.uniformMatrix4fv(this.u_ViewMatrix, false, control.getViewMatrix().elements);
     control.gl.uniformMatrix4fv(this.u_ProjMatrix, false, control.projectionMatrix.elements);
     control.gl.uniformMatrix4fv(this.u_ModelMatrix, false, this.modelMatrix.elements);
     control.gl.uniformMatrix4fv(this.u_InverseTransposeModelMatrix, false, this.inverseTransposeModelMatrix.elements);

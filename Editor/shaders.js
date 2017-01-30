@@ -1,6 +1,7 @@
 // By Spenser Riebs
 // This file creates and uses shaders for use in webgl objects
 
+// Takes in an html id and returns a single string containing the shaders code
 function getShaderCode(id) {
     var shaderScript = document.getElementById(id);
     if (!shaderScript) {
@@ -30,12 +31,14 @@ function Shader(name, control, vshader, fshader) {
     this.use = function() { control.gl.useProgram(_this.program); };
 }
 
+// Gets the uniform locations of the Surface of Revolution object shader for a material
 function SMaterial(shader, control, name) {
     this.color = control.gl.getUniformLocation(shader, name + '.color');
     this.shininess = control.gl.getUniformLocation(shader, name + '.shininess');
     this.specularOn = control.gl.getUniformLocation(shader, name + '.specularOn');
 }
 
+// Gets the uniform locations of the Surface of Revolution object shader for a direct light
 function SDirLight(shader, control, name) {
     this.direction = control.gl.getUniformLocation(shader, name + '.direction');
 
@@ -46,6 +49,7 @@ function SDirLight(shader, control, name) {
     this.isOn = control.gl.getUniformLocation(shader, name + '.isOn');
 }
 
+// Gets the uniform locations of the Surface of Revolution object shader for a point light at index i
 function SPointLight(shader, control, name, i) {
     this.position = control.gl.getUniformLocation(shader, name + '[' + i +'].position');
 
